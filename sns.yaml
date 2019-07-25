@@ -23,10 +23,8 @@ Resources:
   SNSEmailTopic :
     Type : AWS::SNS::Topic
     Properties :
-      DisplayName: 
-        Ref : SNSName
-      TopicName: 
-        Ref : SNSName
+      DisplayName : !Ref SNSName
+      TopicName : !Ref SNSName
     DependsOn :
       - timeEvent
   
@@ -34,31 +32,14 @@ Resources:
     Type: AWS::SNS::Subscription
     Properties:
       Endpoint:
-        Ref: Email
+        !Ref Email
       Protocol: email
       TopicArn:
-        Ref: SNSEmailTopic
+        !Ref SNSEmailTopic
     DependsOn:
       - SNSEmailTopic
   
-  SNSAccessRole:
-    Type: AWS::IAM::Role
-    Properties : 
-      Policies:
-        -
-         PolicyName: "SNSAccessPolicy"
-         PolicyDocument:
-           Version: "2012-10-17"
-           Statement:
-             -
-               Effect: "Allow"
-               Action: "*"
-               Resource: 
-                GetAtt:
-                  -SNSEmailTopic
-                  -Arn
-      RoleName : "SNSAccessRole"
-
+  
   MailerLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -68,10 +49,11 @@ Resources:
       Environment:
         Variables:
           SNS_ARN:
-            - Ref: SNSEmailTopic
+            - !Ref SNSEmailTopic
         FunctionName: MailerLambda
         Handler: lambda_email.lambda_handler
         Runtime: python3.7
+        Role : arn:aws:iam::488599217855:role/full_access
     DependsOn:
       - SNSEmailTopic
   
@@ -79,9 +61,7 @@ Resources:
     Type : AWS::Lambda::Permission
     Properties :
       Action: lambda:InvokeFunction
-      FunctionName : 
-        Ref: MailerLambda
+      FunctionName : !Ref MailerLambda
       Principal : events.amazonaws.com
-      SourceARN : 
-        Ref: timeEvent
+      SourceARN : !Ref timeEvent
 ...
